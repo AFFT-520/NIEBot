@@ -11,6 +11,7 @@
 .mtj.tmp/
 target/
 GeckoDriver/
+niebot.ini
 # Package Files #
 *.jar
 *.war
