@@ -1,5 +1,5 @@
 # NIEBot
-A tool to help Bareclonian people get various immigration-related appointments via the Cita previa process.
+A tool to help Barcelonian people get various immigration-related appointments via the Cita previa process.
 
 ## Requirements
 1. A Windows or Linux PC.
