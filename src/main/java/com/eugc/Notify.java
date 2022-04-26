@@ -37,11 +37,16 @@ public class Notify {
         }
     }
     private void alertLinux(String title, String text ){
+        try{
         DefaultLibNotifyLoader ln = new DefaultLibNotifyLoader();
         LibNotify test = ln.load();
         test.init("NIEBot");
         Notification testnot = test.createNotification(title, text , os); //having an enpty string in the third argument, despite not actually being used, crashes the entire JVM, so using os as a substitute value
         test.showNotification(testnot);
+        }
+        catch(RuntimeException e){
+            Logger.getLogger(Notify.class.getName()).log(Level.SEVERE, null, e);
+        }
     }
     
     private void alertWindows(String title, String text) throws AWTException {

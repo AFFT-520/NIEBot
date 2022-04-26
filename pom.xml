@@ -13,16 +13,16 @@
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
 
-       
+         <dependency>
+    <groupId>com.profesorfalken</groupId>
+    <artifactId>jPowerShell</artifactId>
+    <version>3.1.1</version>
+  </dependency>
         <dependency>
     <groupId>org.seleniumhq.selenium</groupId>
     <artifactId>selenium-java</artifactId>
     <version>4.1.1</version>
     <exclusions>
-        <exclusion>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-chrome-driver</artifactId>
-        </exclusion>
         <exclusion>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-edge-driver</artifactId>

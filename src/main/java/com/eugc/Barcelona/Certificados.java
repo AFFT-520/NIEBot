@@ -5,6 +5,7 @@
 package com.eugc.Barcelona;
 
 import com.eugc.AlertHandler;
+import com.eugc.DDOSException;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -17,10 +18,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.eugc.DriverHelper;
+import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
 import com.eugc.MessageBox;
 import com.eugc.PrefFile;
 import com.eugc.emulateHuman;
+import com.eugc.errorChecker;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -55,7 +58,12 @@ public class Certificados {
         mb.introText();
         mb.setVisible(true);
         try{
-            GetGeckoDriver.getFiles(mb);
+            if (PrefFile.getSettings("driver").toLowerCase().contains("firefox")){
+                GetGeckoDriver.getFiles(mb);
+            }
+            else{
+                GetChromeDriver.getFiles(mb);
+            }
         } catch (Exception ex) {
             Logger.getLogger(Certificados.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
@@ -71,7 +79,6 @@ public class Certificados {
         }
         });
         dh.Init();
-        mb.addLog("Checking this version of GeckoDriver for problems...");
         WebDriver test = dh.TestRun(mb);
         
         if (test == null){
@@ -88,7 +95,12 @@ public class Certificados {
 
         boolean breakloop = false;
         mb.addLog("Starting the Cita Previa bot.");
-        dh.Start();
+         try{
+            dh.Start();
+        }
+        catch (DDOSException e){
+            errorChecker.DDOSChecker(dh, mb, ah);
+        }
         
         while(!breakloop){
             try {
@@ -102,7 +114,12 @@ public class Certificados {
                     Logger.getLogger(Certificados.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (!breakloop){
-                    dh.Restart();
+                     try{
+                            dh.Restart();
+                        }
+                        catch (DDOSException f){
+                            errorChecker.DDOSChecker(dh, mb, ah);
+                        }
                 }
 
             }
@@ -158,18 +175,18 @@ public class Certificados {
         }
         cookieprompt(dh);
         checkForErrors(dh);
-        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona");
+        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s, dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
         checkForErrors(dh);
         
     }
     public static void secondpage(DriverHelper dh) throws Exception {
-        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)");
+        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEntrar")));
         checkForErrors(dh);
@@ -177,7 +194,7 @@ public class Certificados {
     }
     public static void thirdpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEntrar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("rdbTipoDocPas")));
         checkForErrors(dh);
@@ -199,14 +216,14 @@ public class Certificados {
         }
         if(PrefFile.getCertificados("idType").equals("Passport")){
             WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
-            eh.click(r);
+            eh.click(r,dh);
         }
         
         String name = PrefFile.getCertificados("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
-        eh.sendKeys(e1, id);
+        eh.sendKeys(e1, id,dh);
         WebElement e2 = dh.driver.findElement(By.id("txtDesCitado"));
-        eh.sendKeys(e2, name);
+        eh.sendKeys(e2, name,dh);
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
         s.click();
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
@@ -216,7 +233,7 @@ public class Certificados {
     }
     public static boolean fifthpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();

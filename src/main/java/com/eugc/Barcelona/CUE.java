@@ -5,6 +5,7 @@
 package com.eugc.Barcelona;
 
 import com.eugc.AlertHandler;
+import com.eugc.DDOSException;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -17,12 +18,16 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.eugc.DriverHelper;
+import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
 import com.eugc.MessageBox;
 import com.eugc.PrefFile;
 import com.eugc.emulateHuman;
+import com.eugc.errorChecker;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +39,43 @@ import java.util.logging.Logger;
 public class CUE {
     public static int TIMEOUT;
     private static AlertHandler ah;
+    private static errorChecker ec;
+    private static int reqLimit=8000;
+    private ArrayList reqsSent = new ArrayList();
+    
+    private void newReq(MessageBox mb){
+        Date now = new Date();
+        int timeout = 360; //in seconds
+        Long longTime = now.getTime()/1000;
+        reqsSent.add(longTime);
+        for(int i = 0; i < reqsSent.size(); i++){
+            Long time = (Long) reqsSent.get(i);
+            if (longTime > (time + timeout)){
+                reqsSent.remove(i);
+                i = i-1;
+            }
+        }
+        if (reqsSent.size() > reqLimit){
+            mb.addLog("Over " + String.valueOf(reqLimit) + " requests sent within the last " + String.valueOf(timeout/60) + " minutes. Slowing down before we get booted.");
+            while (reqsSent.size() > 50){
+                now = new Date();
+                longTime = now.getTime()/1000;
+                for(int i = 0; i < reqsSent.size(); i++){
+                    Long time = (Long) reqsSent.get(i);
+                    if (longTime > (time + timeout)){
+                        reqsSent.remove(i);
+                        i = i-1;
+                    }
+                }
+                try { 
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CUE.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            mb.addLog("Continuing bot - we should be good to go again");
+        }
+    }
     
 
 
@@ -51,11 +93,19 @@ public class CUE {
         mb = new MessageBox("NIEBot - CUE");
         mb.introText();
         mb.setVisible(true);
+        
+        
+        ec = new errorChecker();
         try{
-            GetGeckoDriver.getFiles(mb);
+            if (PrefFile.getSettings("driver").toLowerCase().contains("firefox")){
+                GetGeckoDriver.getFiles(mb);
+            }
+            else{
+                GetChromeDriver.getFiles(mb);
+            }
         } catch (Exception ex) {
             Logger.getLogger(CUE.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(1);
+            return;
         }
         
         
@@ -68,7 +118,6 @@ public class CUE {
         }
         });
         dh.Init();
-        mb.addLog("Checking this version of GeckoDriver for problems...");
         WebDriver test = dh.TestRun(mb);
         
         if (test == null){
@@ -86,13 +135,17 @@ public class CUE {
 
         boolean breakloop = false;
         mb.addLog("Starting the Cita Previa bot.");
-        dh.Start();
+        try{
+            dh.Start();
+        }
+        catch (DDOSException e){
+            errorChecker.DDOSChecker(dh, mb, ah);
+        }
         
         while(!breakloop){
             try {
                 breakloop = mainLoop(dh);
             } catch (Exception e) {
-                System.out.println(e);
                 e.printStackTrace();
                 try {
                     ah.alert("error");
@@ -100,23 +153,20 @@ public class CUE {
                     Logger.getLogger(CUE.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (!breakloop){
-                    dh.Restart();
+                     try{
+                            dh.Restart();
+                        }
+                        catch (DDOSException f){
+                            errorChecker.DDOSChecker(dh, mb, ah);
+                        }
                 }
 
             }
         }
     }
  
-    
-    public static void checkForErrors(DriverHelper dh) throws Exception {
-        String source = dh.driver.getPageSource();
-        if ( source.contains("Se ha producido un error en el sistema, por favor inténtelo de nuevo. En el caso de que el error persista, puede obtener ayuda a través del siguiente") || source.contains("Su sesión ha caducado por permanecer demasiado tiempo inactiva.")){
-            mb.addLog("The site has thrown an error!");
-            ah.alert("error");
-            dh.Restart();
-        }
-    }
-    public static boolean mainLoop(DriverHelper dh) throws Exception {
+  
+    public boolean mainLoop(DriverHelper dh) throws Exception {
         boolean breakloop = false;
        
 
@@ -149,40 +199,44 @@ public class CUE {
         return(breakloop);
     }
 
-    public static void firstpage(DriverHelper dh) throws Exception {
-        String url = "https://sede.administracionespublicas.gob.es/icpplus/index.html";
-        if (!dh.driver.getCurrentUrl().equals(url)){      
-            dh.driver.get(url);
-        }
+    public void firstpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
         cookieprompt(dh);
-        checkForErrors(dh);
-        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona");
+        ec.checkForErrors(dh, mb, ah);
+        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s, dh);
+        newReq(mb);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         
     }
-    public static void secondpage(DriverHelper dh) throws Exception {
-        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.");
+    public void secondpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
+        dh.scroll(0,0,202,206);
+        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s, dh);
+        newReq(mb);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEntrar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
-    public static void thirdpage(DriverHelper dh) throws Exception {
+    public void thirdpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
         WebElement s = dh.driver.findElement(By.id("btnEntrar"));
-        eh.click(s);
+        eh.click(s, dh);
+        newReq(mb);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("rdbTipoDocPas")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
 
-    public static void fourthpage(DriverHelper dh) throws Exception {
+    public void fourthpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
         String id;
         try{
         if(PrefFile.getCUE("idType").equals("NIE")){
@@ -196,45 +250,39 @@ public class CUE {
             id=PrefFile.getCUE("PassportNumber");
         }
         if(!PrefFile.getCUE("idType").equals("NIE")){
-            WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
-            eh.click(r);
+            WebElement r = dh.driver.findElement(By.cssSelector(".w100"));
+            eh.click(r, dh);
         }
         
         String name = PrefFile.getCUE("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
-        eh.sendKeys(e1, id);
+        eh.sendKeys(e1, id, dh);
         WebElement e2 = dh.driver.findElement(By.id("txtDesCitado"));
-        eh.sendKeys(e2, name);
+        eh.sendKeys(e2, name, dh);
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
         s.click();
+        newReq(mb);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEnviar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
-    public static boolean fifthpage(DriverHelper dh) throws Exception {
+    public boolean fifthpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
-        eh.click(s);
+        eh.click(s, dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
         String retryMode = PrefFile.getSettings("RetryMode").toLowerCase();
         
         if (retryMode.equals("refresh")){
-            ExpectedCondition < Boolean > pageLoad = new ExpectedCondition < Boolean > () {
-                public Boolean apply(WebDriver driver) {
-                    return ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete");
-                }
-            };
-
-            
+                    
             while (body.contains("En este momento no hay citas disponibles")){
                 
-                dh.driver.navigate().refresh();
-                Alert alert = dh.driver.switchTo().alert();
-                alert.accept();
-                eh.waitUntilBool(wait, ExpectedConditions.stalenessOf(dh.driver.findElement(By.id("btnSalir"))));
-                wait.until(pageLoad);
+                eh.refresh(dh, "btnSalir");
+                newReq(mb);
+                
                 body=dh.driver.getPageSource();
                 if (body.contains("ATENCIÓN, LEA ATENTAMENTE ANTES DE ACEPTAR UNA CITA:")){
                     return(false);
@@ -256,14 +304,15 @@ public class CUE {
         }
         else {
         if (!body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             return true;
         }
         return false;
         }
     }
 
-    public static Boolean sixthpage(DriverHelper dh) throws Exception {
+    public Boolean sixthpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
          //Time is of the essence at this stage. Do not bother emuating a human
         WebElement oficina = dh.driver.findElement(By.id("idSede"));
         Select e = new Select(oficina);
@@ -272,21 +321,23 @@ public class CUE {
         }
         WebElement s = dh.driver.findElement(By.id("btnSiguiente"));
         s.click();
+        newReq(mb);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("txtTelefonoCitado")));
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             eh.delay("short");
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
         
 
     }
 
-    public static boolean seventhpage(DriverHelper dh) throws Exception {
+    public boolean seventhpage(DriverHelper dh) throws Exception {
+        dh.saveCookies();
         String phoneNumber = PrefFile.getCUE("SpanishTelephoneNumber");
         String email = PrefFile.getCUE("EmailAddress");
         WebElement tel = dh.driver.findElement(By.id("txtTelefonoCitado"));
@@ -298,13 +349,17 @@ public class CUE {
         email2.sendKeys(email);
         WebElement s = dh.driver.findElement(By.id("btnSiguiente"));
         s.click();
+        newReq(mb);
         TimeUnit.SECONDS.sleep(2);
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
+            WebElement submit = dh.driver.findElement(By.id("btnSubmit"));
+            eh.click(submit, dh);
+            newReq(mb);
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
 
     }

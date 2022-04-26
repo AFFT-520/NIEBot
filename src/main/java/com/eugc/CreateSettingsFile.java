@@ -43,6 +43,8 @@ public class CreateSettingsFile extends javax.swing.JFrame {
         AlertMenthodLabel = new javax.swing.JLabel();
         AlertMethod = new javax.swing.JComboBox<>();
         TestButton = new javax.swing.JButton();
+        BrowserLabel = new javax.swing.JLabel();
+        Browser = new javax.swing.JComboBox<>();
         CUEOptionsBox = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         CUEIDNumberLabel = new javax.swing.JLabel();
@@ -158,21 +160,36 @@ public class CreateSettingsFile extends javax.swing.JFrame {
             }
         });
 
+        BrowserLabel.setText("Alert Method");
+
+        Browser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Google Chrome (Recommended)", "Mozilla Firefox" }));
+        Browser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BrowserActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout CoreConfigBoxLayout = new javax.swing.GroupLayout(CoreConfigBox);
         CoreConfigBox.setLayout(CoreConfigBoxLayout);
         CoreConfigBoxLayout.setHorizontalGroup(
             CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(CoreConfigBoxLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(TimeoutLabel)
-                    .addComponent(AlertMenthodLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(TimeoutText)
-                    .addComponent(AlertMethod, 0, 138, Short.MAX_VALUE))
-                .addGap(18, 18, 18)
-                .addComponent(TestButton)
+                .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(CoreConfigBoxLayout.createSequentialGroup()
+                        .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(TimeoutLabel)
+                            .addComponent(AlertMenthodLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(TimeoutText)
+                            .addComponent(AlertMethod, 0, 138, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addComponent(TestButton))
+                    .addGroup(CoreConfigBoxLayout.createSequentialGroup()
+                        .addComponent(BrowserLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(Browser, 0, 228, Short.MAX_VALUE)))
                 .addContainerGap(94, Short.MAX_VALUE))
         );
         CoreConfigBoxLayout.setVerticalGroup(
@@ -187,7 +204,10 @@ public class CreateSettingsFile extends javax.swing.JFrame {
                     .addComponent(AlertMethod, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(TestButton)
                     .addComponent(AlertMenthodLabel))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                .addGroup(CoreConfigBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(BrowserLabel)
+                    .addComponent(Browser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         jPanel1.add(CoreConfigBox);
@@ -857,6 +877,10 @@ public class CreateSettingsFile extends javax.swing.JFrame {
         IDNumberLabel(TIEFingerprintsIDType, TIEFingerprintsIDNumberLabel);
     }//GEN-LAST:event_TIEFingerprintsIDTypeActionPerformed
 
+    private void BrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BrowserActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_BrowserActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -920,9 +944,19 @@ public class CreateSettingsFile extends javax.swing.JFrame {
                 alert = "notify";
                 break;
         }
+        String browserStr = "";
+        switch (Browser.getSelectedIndex()){
+            case 0:
+                browserStr = "chrome";
+                break;
+            case 1:
+                browserStr = "firefox";
+                break;
+            
+        }
         String function = functions.get(appointmentTypeData.getSelectedIndex());
         ArrayList<String> coreOptions = new ArrayList<String>();
-        String[] settingsArr = {timeOut, alert, "refresh", "yes", "Barcelona",function};
+        String[] settingsArr = {timeOut, alert, "refresh", "yes", "Barcelona", browserStr, function};
         for(String option: settingsArr){
             coreOptions.add(option);
         }
@@ -985,6 +1019,8 @@ public class CreateSettingsFile extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel AlertMenthodLabel;
     private javax.swing.JComboBox<String> AlertMethod;
+    private javax.swing.JComboBox<String> Browser;
+    private javax.swing.JLabel BrowserLabel;
     private javax.swing.JTextField CUEEmail;
     private javax.swing.JTextField CUEFullName;
     private javax.swing.JTextField CUEIDNumber;

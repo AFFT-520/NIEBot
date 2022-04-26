@@ -45,7 +45,7 @@ public class CreateSettingsFileBackend extends Thread {
     }
     
     public void addCore(){
-        String[] settings = {"Timeout", "AlertMode", "RetryMode", "IgnoreOpeningHours", "Region", "AppointmentType"};
+        String[] settings = {"Timeout", "AlertMode", "RetryMode", "IgnoreOpeningHours", "Region", "driver", "AppointmentType"};
         ConfigParser cp = new ConfigParser();
         try {
             

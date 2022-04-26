@@ -19,3 +19,8 @@ A tool to help Barcelonian people get various immigration-related appointments v
 1. This app is shared under the GPLv3 license. It is open source software, and is free to download. I would highly recommend only getting the application and updates from this repository.
 2. Any attempts to use this application code or portions thereof to attack any Spanish government websites are hereby outrighted condemed by the author of this application. Just don't do it.
 3. The selling of the appointments that can be obtained via this application is illegal and is not supported by the author. This tool is intended to help individuals who are having a difficult time obtaining these appointments for themselves.
+
+## Changelog
+
+1.0 (12/03/22) - Initial Release
+1.2 (26/04/22) - Google Chrome support added, is now the recommended browser. Adapted to comply with the new protections of the site.

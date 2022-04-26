@@ -5,6 +5,7 @@
 package com.eugc.Barcelona;
 
 import com.eugc.AlertHandler;
+import com.eugc.DDOSException;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -17,9 +18,11 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.eugc.DriverHelper;
+import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
 import com.eugc.MessageBox;
 import com.eugc.PrefFile;
+import com.eugc.errorChecker;
 import com.eugc.emulateHuman;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +49,7 @@ public class TIEFingerprint {
     
     private static MessageBox mb;
     private static AlertHandler ah;
+    private static errorChecker ec;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public TIEFingerprint() {
         
@@ -53,7 +57,12 @@ public class TIEFingerprint {
         mb.introText();
         mb.setVisible(true);
         try{
-            GetGeckoDriver.getFiles(mb);
+            if (PrefFile.getSettings("driver").toLowerCase().contains("firefox")){
+                GetGeckoDriver.getFiles(mb);
+            }
+            else{
+                GetChromeDriver.getFiles(mb);
+            }
         } catch (Exception ex) {
             Logger.getLogger(TIEFingerprint.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
@@ -69,7 +78,6 @@ public class TIEFingerprint {
         }
         });
         dh.Init();
-        mb.addLog("Checking this version of GeckoDriver for problems...");
         WebDriver test = dh.TestRun(mb);
         
         if (test == null){
@@ -86,7 +94,12 @@ public class TIEFingerprint {
 
         boolean breakloop = false;
         mb.addLog("Starting the Cita Previa bot.");
-        dh.Start();
+         try{
+            dh.Start();
+        }
+        catch (DDOSException e){
+            errorChecker.DDOSChecker(dh, mb, ah);
+        }
         
         while(!breakloop){
             try {
@@ -100,7 +113,12 @@ public class TIEFingerprint {
                     Logger.getLogger(TIEFingerprint.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (!breakloop){
-                    dh.Restart();
+                     try{
+                            dh.Restart();
+                        }
+                        catch (DDOSException f){
+                            errorChecker.DDOSChecker(dh, mb, ah);
+                        }
                 }
 
             }
@@ -156,30 +174,30 @@ public class TIEFingerprint {
             dh.driver.get(url);
         }
         cookieprompt(dh);
-        checkForErrors(dh);
-        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona");
+        ec.checkForErrors(dh, mb, ah);
+        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona",dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         
     }
     public static void secondpage(DriverHelper dh) throws Exception {
-        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN");
+        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN",dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEntrar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
     public static void thirdpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEntrar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("rdbTipoDocPas")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
 
@@ -198,7 +216,7 @@ public class TIEFingerprint {
         }
         if(!PrefFile.getTIEFingerprint("idType").equals("NIE")){
             WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
-            eh.click(r);
+            eh.click(r,dh);
         }
         
         String name = PrefFile.getTIEFingerprint("NameAndSurname");
@@ -206,23 +224,23 @@ public class TIEFingerprint {
         String expirationDate = PrefFile.getTIEFingerprint("ExistingCardExpiration");
         
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
-        eh.sendKeys(e1, id);
+        eh.sendKeys(e1, id,dh);
         WebElement e2 = dh.driver.findElement(By.id("txtDesCitado"));
-        eh.sendKeys(e2, name);
+        eh.sendKeys(e2, name,dh);
         WebElement e3 = dh.driver.findElement(By.id("txtPaisNac"));
-        eh.selectByVisibleText(e3, country);
+        eh.selectByVisibleText(e3, country,dh);
         WebElement e4 = dh.driver.findElement(By.id("txtFecha"));
-        eh.sendKeys(e4, expirationDate);
+        eh.sendKeys(e4, expirationDate,dh);
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
         s.click();
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEnviar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
     public static boolean fifthpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
@@ -264,7 +282,7 @@ public class TIEFingerprint {
         }
         else {
         if (!body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             return true;
         }
         return false;
@@ -284,11 +302,11 @@ public class TIEFingerprint {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("txtTelefonoCitado")));
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             eh.delay("short");
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
         
 
@@ -309,10 +327,10 @@ public class TIEFingerprint {
         TimeUnit.SECONDS.sleep(2);
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
 
     }

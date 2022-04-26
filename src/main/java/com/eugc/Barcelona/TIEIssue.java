@@ -5,6 +5,7 @@
 package com.eugc.Barcelona;
 
 import com.eugc.AlertHandler;
+import com.eugc.DDOSException;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -17,10 +18,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.eugc.DriverHelper;
+import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
 import com.eugc.MessageBox;
 import com.eugc.PrefFile;
 import com.eugc.emulateHuman;
+import com.eugc.errorChecker;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -46,6 +49,7 @@ public class TIEIssue {
     
     private static MessageBox mb;
     private static AlertHandler ah;
+    private static errorChecker ec;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public TIEIssue() {
         
@@ -53,7 +57,12 @@ public class TIEIssue {
         mb.introText();
         mb.setVisible(true);
         try{
-            GetGeckoDriver.getFiles(mb);
+            if (PrefFile.getSettings("driver").toLowerCase().contains("firefox")){
+                GetGeckoDriver.getFiles(mb);
+            }
+            else{
+                GetChromeDriver.getFiles(mb);
+            }
         } catch (Exception ex) {
             Logger.getLogger(TIEIssue.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
@@ -69,7 +78,6 @@ public class TIEIssue {
         }
         });
         dh.Init();
-        mb.addLog("Checking this version of GeckoDriver for problems...");
         WebDriver test = dh.TestRun(mb);
         
         if (test == null){
@@ -86,7 +94,12 @@ public class TIEIssue {
 
         boolean breakloop = false;
         mb.addLog("Starting the Cita Previa bot.");
-        dh.Start();
+         try{
+            dh.Start();
+        }
+        catch (DDOSException e){
+            errorChecker.DDOSChecker(dh, mb, ah);
+        }
         
         while(!breakloop){
             try {
@@ -100,7 +113,12 @@ public class TIEIssue {
                     Logger.getLogger(TIEIssue.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (!breakloop){
+                     try{
                     dh.Restart();
+                    }
+                    catch (DDOSException f){
+                        errorChecker.DDOSChecker(dh, mb, ah);
+                    }
                 }
 
             }
@@ -155,30 +173,30 @@ public class TIEIssue {
             dh.driver.get(url);
         }
         cookieprompt(dh);
-        checkForErrors(dh);
-        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona");
+        ec.checkForErrors(dh, mb, ah);
+        eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona",dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         
     }
     public static void secondpage(DriverHelper dh) throws Exception {
-        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICÍA-EXPEDICIÓN DE TARJETAS CUYA AUTORIZACIÓN RESUELVE LA DIRECCIÓN GENERAL DE MIGRACIONES");
+        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICÍA-EXPEDICIÓN DE TARJETAS CUYA AUTORIZACIÓN RESUELVE LA DIRECCIÓN GENERAL DE MIGRACIONES",dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEntrar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
     public static void thirdpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEntrar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("rdbTipoDocNie")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
 
@@ -186,19 +204,19 @@ public class TIEIssue {
         String id = PrefFile.getTIEIssue("NIENumber");
         String name = PrefFile.getTIEIssue("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
-        eh.sendKeys(e1, id);
+        eh.sendKeys(e1, id,dh);
         WebElement e2 = dh.driver.findElement(By.id("txtDesCitado"));
-        eh.sendKeys(e2, name);
+        eh.sendKeys(e2, name,dh);
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
         s.click();
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("btnEnviar")));
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
 
     }
     public static boolean fifthpage(DriverHelper dh) throws Exception {
         WebElement s = dh.driver.findElement(By.id("btnEnviar"));
-        eh.click(s);
+        eh.click(s,dh);
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
@@ -240,7 +258,7 @@ public class TIEIssue {
         }
         else {
         if (!body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             return true;
         }
         return false;
@@ -260,11 +278,11 @@ public class TIEIssue {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("txtTelefonoCitado")));
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             eh.delay("short");
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
         
 
@@ -285,10 +303,10 @@ public class TIEIssue {
         TimeUnit.SECONDS.sleep(2);
         String body = dh.driver.getPageSource();
         if (body.contains("En este momento no hay citas disponibles")){
-            checkForErrors(dh);
+            ec.checkForErrors(dh, mb, ah);
             return false;
         }
-        checkForErrors(dh);
+        ec.checkForErrors(dh, mb, ah);
         return true;
 
     }
