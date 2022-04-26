@@ -23,4 +23,4 @@ A tool to help Barcelonian people get various immigration-related appointments v
 ## Changelog
 
 * 1.0 (12/03/22) - Initial Release
-*1.2 (26/04/22) - Google Chrome support added, is now the recommended browser. Adapted to comply with the new protections of the site.
+* 1.2 (26/04/22) - Google Chrome support added, is now the recommended browser. Adapted to comply with the new protections of the site.
