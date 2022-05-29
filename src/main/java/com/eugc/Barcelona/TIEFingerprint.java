@@ -38,22 +38,22 @@ public class TIEFingerprint extends AppointmentGlobals {
     public static int TIMEOUT;
 
     public static boolean ERROR_NOISE;
-    
+
 
 
     static {
-        
+
             TIMEOUT = com.eugc.mainClass.TIMEOUT;
-        
+
     }
-    
-    
+
+
     private static MessageBox mb;
     private static AlertHandler ah;
     private static errorChecker ec;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public TIEFingerprint() {
-        
+
         mb = new MessageBox("NIEBot - TIE Fingerprints");
         mb.introText();
         mb.setVisible(true);
@@ -68,10 +68,10 @@ public class TIEFingerprint extends AppointmentGlobals {
             Logger.getLogger(TIEFingerprint.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
         }
-        
-        
+
+
         DriverHelper dh = new DriverHelper();
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
         public void run(){
@@ -80,7 +80,7 @@ public class TIEFingerprint extends AppointmentGlobals {
         });
         dh.Init();
         WebDriver test = dh.TestRun(mb);
-        
+
         if (test == null){
             return;
         }
@@ -101,7 +101,7 @@ public class TIEFingerprint extends AppointmentGlobals {
         catch (DDOSException e){
             errorChecker.DDOSChecker(dh, mb, ah);
         }
-        
+
         while(!breakloop){
             try {
                 breakloop = mainLoop(dh);
@@ -125,8 +125,8 @@ public class TIEFingerprint extends AppointmentGlobals {
             }
         }
     }
- 
-    
+
+
     public static void checkForErrors(DriverHelper dh) throws Exception {
         String source = dh.driver.getPageSource();
         if ( source.contains("Se ha producido un error en el sistema, por favor inténtelo de nuevo. En el caso de que el error persista, puede obtener ayuda a través del siguiente") || source.contains("Su sesión ha caducado por permanecer demasiado tiempo inactiva.")){
@@ -138,7 +138,7 @@ public class TIEFingerprint extends AppointmentGlobals {
     public static boolean mainLoop(DriverHelper dh) throws Exception {
         boolean breakloop = false;
         boolean ignoreTime = true;
-       
+
 
         while ((!breakloop) && ignoreTime) {
             firstpage(dh);
@@ -158,7 +158,7 @@ public class TIEFingerprint extends AppointmentGlobals {
                         }
                 }
                 else{
-                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!"); 
+                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!");
                 }
 
 
@@ -181,7 +181,7 @@ public class TIEFingerprint extends AppointmentGlobals {
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
         ec.checkForErrors(dh, mb, ah);
-        
+
     }
     public static void secondpage(DriverHelper dh) throws Exception {
         eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN",dh);
@@ -218,11 +218,11 @@ public class TIEFingerprint extends AppointmentGlobals {
             WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
             eh.click(r,dh);
         }
-        
+
         String name = PrefFile.getTIEFingerprint("NameAndSurname");
         String country = PrefFile.getTIEFingerprint("CountryOfNationality").toUpperCase();
         String expirationDate = PrefFile.getTIEFingerprint("ExistingCardExpiration");
-        
+
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
         eh.sendKeys(e1, id,dh);
         WebElement e2 = dh.driver.findElement(By.id("txtDesCitado"));
@@ -245,7 +245,7 @@ public class TIEFingerprint extends AppointmentGlobals {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
         String retryMode = PrefFile.getSettings("RetryMode").toLowerCase();
-        
+
         if (retryMode.equals("refresh")){
             ExpectedCondition < Boolean > pageLoad = new ExpectedCondition < Boolean > () {
                 public Boolean apply(WebDriver driver) {
@@ -253,9 +253,9 @@ public class TIEFingerprint extends AppointmentGlobals {
                 }
             };
 
-            
+
             while (body.contains("En este momento no hay citas disponibles")){
-                
+
                 dh.driver.navigate().refresh();
                 Alert alert = dh.driver.switchTo().alert();
                 alert.accept();
@@ -273,9 +273,9 @@ public class TIEFingerprint extends AppointmentGlobals {
                     return true;
                 }
                 wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
-                
-                
-                
+
+
+
 
             }
             return true;
@@ -308,7 +308,7 @@ public class TIEFingerprint extends AppointmentGlobals {
         }
         ec.checkForErrors(dh, mb, ah);
         return true;
-        
+
 
     }
 

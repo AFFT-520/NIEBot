@@ -38,30 +38,30 @@ public class NIE extends AppointmentGlobals {
     public static int TIMEOUT;
 
     public static boolean ERROR_NOISE;
-    
+
 
 
     static {
-        
+
             TIMEOUT = com.eugc.mainClass.TIMEOUT;
-        
+
     }
 
     static {
-        
+
             String en = PrefFile.getSettings("AlertMode");
             if (en.equalsIgnoreCase("noise")) ERROR_NOISE = true;
             else ERROR_NOISE = false;
 
     }
-    
-    
+
+
     private static MessageBox mb;
     private static AlertHandler ah;
     private static errorChecker ec;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public NIE() {
-        
+
         mb = new MessageBox("NIEBot - NIE Number");
         mb.introText();
         mb.setVisible(true);
@@ -76,10 +76,10 @@ public class NIE extends AppointmentGlobals {
             Logger.getLogger(NIE.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
         }
-        
-        
+
+
         DriverHelper dh = new DriverHelper();
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
         public void run(){
@@ -88,7 +88,7 @@ public class NIE extends AppointmentGlobals {
         });
         dh.Init();
         WebDriver test = dh.TestRun(mb);
-        
+
         if (test == null){
             return;
         }
@@ -109,7 +109,7 @@ public class NIE extends AppointmentGlobals {
         catch (DDOSException e){
             errorChecker.DDOSChecker(dh, mb, ah);
         }
-        
+
         while(!breakloop){
             try {
                 breakloop = mainLoop(dh);
@@ -133,12 +133,12 @@ public class NIE extends AppointmentGlobals {
             }
         }
     }
- 
-    
-    
+
+
+
     public static boolean mainLoop(DriverHelper dh) throws Exception {
         boolean breakloop = false;
-       
+
 
         while (!breakloop) {
             firstpage(dh);
@@ -158,7 +158,7 @@ public class NIE extends AppointmentGlobals {
                         }
                 }
                 else{
-                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!"); 
+                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!");
                 }
 
 
@@ -182,7 +182,7 @@ public class NIE extends AppointmentGlobals {
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
         ec.checkForErrors(dh, mb, ah);
-        
+
     }
     public static void secondpage(DriverHelper dh) throws Exception {
         dh.saveCookies();
@@ -228,7 +228,7 @@ public class NIE extends AppointmentGlobals {
             WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
             eh.click(r,dh);
         }
-        
+
         String name = PrefFile.getNIE("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
         eh.sendKeys(e1, id,dh);
@@ -249,11 +249,11 @@ public class NIE extends AppointmentGlobals {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
         String retryMode = PrefFile.getSettings("RetryMode").toLowerCase();
-        
+
         if (retryMode.equals("refresh")){
-                        
+
             while (body.contains("En este momento no hay citas disponibles")){
-                
+
                 eh.refresh(dh, "btnSalir");
                 wait.until(ExpectedConditions.stalenessOf(dh.driver.findElement(By.id("btnSalir"))));
                 body=dh.driver.getPageSource();
@@ -268,9 +268,9 @@ public class NIE extends AppointmentGlobals {
                     return true;
                 }
                 wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
-                
-                
-                
+
+
+
 
             }
             return true;
@@ -303,7 +303,7 @@ public class NIE extends AppointmentGlobals {
         }
         ec.checkForErrors(dh, mb, ah);
         return true;
-        
+
 
     }
 

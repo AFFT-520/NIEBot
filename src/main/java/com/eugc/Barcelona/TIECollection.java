@@ -38,22 +38,22 @@ public class TIECollection extends AppointmentGlobals {
     public static int TIMEOUT;
 
     public static boolean ERROR_NOISE;
-    
+
 
 
     static {
-        
+
             TIMEOUT = com.eugc.mainClass.TIMEOUT;
-        
+
     }
-    
-    
+
+
     private static MessageBox mb;
     private static AlertHandler ah;
     private static errorChecker ec;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public TIECollection() {
-        
+
         mb = new MessageBox("NIEBot - TIE Collection");
         mb.introText();
         mb.setVisible(true);
@@ -68,10 +68,10 @@ public class TIECollection extends AppointmentGlobals {
             Logger.getLogger(TIECollection.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
         }
-        
-        
+
+
         DriverHelper dh = new DriverHelper();
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
         public void run(){
@@ -80,7 +80,7 @@ public class TIECollection extends AppointmentGlobals {
         });
         dh.Init();
         WebDriver test = dh.TestRun(mb);
-        
+
         if (test == null){
             return;
         }
@@ -101,7 +101,7 @@ public class TIECollection extends AppointmentGlobals {
         catch (DDOSException e){
             errorChecker.DDOSChecker(dh, mb, ah);
         }
-        
+
         while(!breakloop){
             try {
                 breakloop = mainLoop(dh);
@@ -125,8 +125,8 @@ public class TIECollection extends AppointmentGlobals {
             }
         }
     }
- 
-    
+
+
     public static void checkForErrors(DriverHelper dh) throws Exception {
         String source = dh.driver.getPageSource();
         if ( source.contains("Se ha producido un error en el sistema, por favor inténtelo de nuevo. En el caso de que el error persista, puede obtener ayuda a través del siguiente") || source.contains("Su sesión ha caducado por permanecer demasiado tiempo inactiva.")){
@@ -137,7 +137,7 @@ public class TIECollection extends AppointmentGlobals {
     }
     public static boolean mainLoop(DriverHelper dh) throws Exception {
         boolean breakloop = false;
-       
+
 
         while (!breakloop) {
             firstpage(dh);
@@ -157,7 +157,7 @@ public class TIECollection extends AppointmentGlobals {
                         }
                 }
                 else{
-                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!"); 
+                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!");
                 }
 
 
@@ -180,7 +180,7 @@ public class TIECollection extends AppointmentGlobals {
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
         ec.checkForErrors(dh, mb, ah);
-        
+
     }
     public static void secondpage(DriverHelper dh) throws Exception {
         eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)",dh);
@@ -203,7 +203,7 @@ public class TIECollection extends AppointmentGlobals {
     public static void fourthpage(DriverHelper dh) throws Exception {
         String id;
         id=PrefFile.getTIECollection("NIENumber");
-        
+
         String name = PrefFile.getTIECollection("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
         eh.sendKeys(e1, id,dh);
@@ -223,7 +223,7 @@ public class TIECollection extends AppointmentGlobals {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
         String retryMode = PrefFile.getSettings("RetryMode").toLowerCase();
-        
+
         if (retryMode.equals("refresh")){
             ExpectedCondition < Boolean > pageLoad = new ExpectedCondition < Boolean > () {
                 public Boolean apply(WebDriver driver) {
@@ -231,9 +231,9 @@ public class TIECollection extends AppointmentGlobals {
                 }
             };
 
-            
+
             while (body.contains("En este momento no hay citas disponibles")){
-                
+
                 dh.driver.navigate().refresh();
                 Alert alert = dh.driver.switchTo().alert();
                 alert.accept();
@@ -251,9 +251,9 @@ public class TIECollection extends AppointmentGlobals {
                     return true;
                 }
                 wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
-                
-                
-                
+
+
+
 
             }
             return true;
@@ -286,7 +286,7 @@ public class TIECollection extends AppointmentGlobals {
         }
         ec.checkForErrors(dh, mb, ah);
         return true;
-        
+
 
     }
 
