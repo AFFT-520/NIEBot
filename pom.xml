@@ -46,7 +46,7 @@
     </exclusions>
 </dependency>
 
-    
+
 <dependency>
     <groupId>com.sun.mail</groupId>
     <artifactId>jakarta.mail</artifactId>
@@ -82,15 +82,16 @@
     <artifactId>ini4j</artifactId>
     <version>0.5.4</version>
 </dependency>
-        <dependency>
-            <groupId>unknown.binary</groupId>
-            <artifactId>AbsoluteLayout</artifactId>
-            <version>SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-    <name>NIEBot-Public</name>
-    
-    <build>
+<dependency>
+   <groupId>org.netbeans.external</groupId>
+   <artifactId>AbsoluteLayout</artifactId>
+   <version>RELEASE130</version>
+</dependency>
+
+</dependencies>
+<name>NIEBot-Public</name>
+
+<build>
 <plugins>
 <plugin>
 <artifactId>maven-assembly-plugin</artifactId>
@@ -117,11 +118,6 @@
 </plugin>
 </plugins>
 </build>
-    <repositories>
-        <repository>
-            <id>unknown-jars-temp-repo</id>
-            <name>A temporary repository created by NetBeans for libraries and jars it could not identify. Please replace the dependencies in this repository with correct ones and delete this repository.</name>
-            <url>file:${project.basedir}/lib</url>
-        </repository>
-    </repositories>
+<repositories>
+</repositories>
 </project>
