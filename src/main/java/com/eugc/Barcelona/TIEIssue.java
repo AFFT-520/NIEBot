@@ -17,6 +17,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.eugc.AppointmentGlobals;
 import com.eugc.DriverHelper;
 import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
@@ -33,7 +34,7 @@ import java.util.logging.Logger;
  *
  * @author 520
  */
-public class TIEIssue {
+public class TIEIssue extends AppointmentGlobals {
     public static int TIMEOUT;
 
     public static boolean ERROR_NOISE;
@@ -168,9 +169,8 @@ public class TIEIssue {
     }
 
     public static void firstpage(DriverHelper dh) throws Exception {
-        String url = "https://sede.administracionespublicas.gob.es/icpplus/index.html";
-        if (!dh.driver.getCurrentUrl().equals(url)){      
-            dh.driver.get(url);
+        if (!dh.driver.getCurrentUrl().equals(URL)){
+            dh.driver.get(URL);
         }
         cookieprompt(dh);
         ec.checkForErrors(dh, mb, ah);
