@@ -17,6 +17,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.eugc.AppointmentGlobals;
 import com.eugc.DriverHelper;
 import com.eugc.GetChromeDriver;
 import com.eugc.GetGeckoDriver;
@@ -33,27 +34,27 @@ import java.util.logging.Logger;
  *
  * @author 520
  */
-public class Certificados {
+public class Certificados extends AppointmentGlobals {
     public static int TIMEOUT;
 
     public static boolean ERROR_NOISE;
-    
+
 
 
     static {
-        
+
             TIMEOUT = com.eugc.mainClass.TIMEOUT;
-        
+
     }
 
 
-    
-    
+
+
     private static MessageBox mb;
     private static AlertHandler ah;
     private static final emulateHuman eh = new emulateHuman(PrefFile.getSettings("RetryMode"));
     public Certificados() {
-        
+
         mb = new MessageBox("NIEBot - Certificados");
         mb.introText();
         mb.setVisible(true);
@@ -68,10 +69,10 @@ public class Certificados {
             Logger.getLogger(Certificados.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
         }
-        
-        
+
+
         DriverHelper dh = new DriverHelper();
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
         public void run(){
@@ -80,7 +81,7 @@ public class Certificados {
         });
         dh.Init();
         WebDriver test = dh.TestRun(mb);
-        
+
         if (test == null){
             return;
         }
@@ -101,7 +102,7 @@ public class Certificados {
         catch (DDOSException e){
             errorChecker.DDOSChecker(dh, mb, ah);
         }
-        
+
         while(!breakloop){
             try {
                 breakloop = mainLoop(dh);
@@ -125,8 +126,8 @@ public class Certificados {
             }
         }
     }
- 
-    
+
+
     public static void checkForErrors(DriverHelper dh) throws Exception {
         String source = dh.driver.getPageSource();
         if ( source.contains("Se ha producido un error en el sistema, por favor inténtelo de nuevo. En el caso de que el error persista, puede obtener ayuda a través del siguiente") || source.contains("Su sesión ha caducado por permanecer demasiado tiempo inactiva.")){
@@ -137,7 +138,7 @@ public class Certificados {
     }
     public static boolean mainLoop(DriverHelper dh) throws Exception {
         boolean breakloop = false;
-       
+
 
         while (!breakloop) {
             firstpage(dh);
@@ -157,7 +158,7 @@ public class Certificados {
                         }
                 }
                 else{
-                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!"); 
+                mb.addLog("Darn! The bot wasn't able to lock it in. It'll keep trying!");
                 }
 
 
@@ -169,9 +170,8 @@ public class Certificados {
     }
 
     public static void firstpage(DriverHelper dh) throws Exception {
-        String url = "https://sede.administracionespublicas.gob.es/icpplus/index.html";
-        if (!dh.driver.getCurrentUrl().equals(url)){      
-            dh.driver.get(url);
+        if (!dh.driver.getCurrentUrl().equals(URL)){
+            dh.driver.get(URL);
         }
         cookieprompt(dh);
         checkForErrors(dh);
@@ -181,7 +181,7 @@ public class Certificados {
         WebDriverWait wait = new WebDriverWait(dh.driver, TIMEOUT);
         eh.waitUntil(wait, ExpectedConditions.elementToBeClickable(By.id("tramiteGrupo[0]")));
         checkForErrors(dh);
-        
+
     }
     public static void secondpage(DriverHelper dh) throws Exception {
         eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)", dh);
@@ -218,7 +218,7 @@ public class Certificados {
             WebElement r = dh.driver.findElement(By.id("rdbTipoDocPas"));
             eh.click(r,dh);
         }
-        
+
         String name = PrefFile.getCertificados("NameAndSurname");
         WebElement e1 = dh.driver.findElement(By.id("txtIdCitado"));
         eh.sendKeys(e1, id,dh);
@@ -238,7 +238,7 @@ public class Certificados {
         wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
         String body = dh.driver.getPageSource();
         String retryMode = PrefFile.getSettings("RetryMode").toLowerCase();
-        
+
         if (retryMode.equals("refresh")){
             ExpectedCondition < Boolean > pageLoad = new ExpectedCondition < Boolean > () {
                 public Boolean apply(WebDriver driver) {
@@ -246,9 +246,9 @@ public class Certificados {
                 }
             };
 
-            
+
             while (body.contains("En este momento no hay citas disponibles")){
-                
+
                 dh.driver.navigate().refresh();
                 Alert alert = dh.driver.switchTo().alert();
                 alert.accept();
@@ -266,9 +266,9 @@ public class Certificados {
                     return true;
                 }
                 wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
-                
-                
-                
+
+
+
 
             }
             return true;
@@ -300,7 +300,7 @@ public class Certificados {
         }
         checkForErrors(dh);
         return true;
-        
+
 
     }
 
