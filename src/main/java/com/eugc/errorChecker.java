@@ -28,6 +28,7 @@ public class errorChecker {
                     mb.addLog("We've likely triggered a cooldown timer! These seem to be unavoidable. Hibernating the bot for " + String.valueOf(SHORT_STANDBY_MINS) + " minutes.");
                     Thread.sleep(1000 * 60 * SHORT_STANDBY_MINS);  
                     dh.Restart();
+                    break;
                     
             }
         }
@@ -57,6 +58,9 @@ public class errorChecker {
             errorCode = 1;
         }
         else if (source.contains("Ha ocurrido un error, vuelva a intentarlo más tarde.")){
+           errorCode = 2;
+        }
+        else if (dh.driver.getTitle().equals("429 Too Many Requests")){
            errorCode = 2;
         }
         else {

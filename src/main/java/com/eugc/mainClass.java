@@ -80,7 +80,12 @@ public class mainClass {
             }
         }
         if (TIMEOUT == 0){
-            TIMEOUT = parseInt(PrefFile.getSettings("Timeout"));
+            try{
+                TIMEOUT = parseInt(PrefFile.getSettings("Timeout"));
+            }
+            catch (Exception ex){
+                TIMEOUT = 15;
+            }
         }
         regionName = PrefFile.getSettings("Region");
         function = PrefFile.getSettings("AppointmentType");

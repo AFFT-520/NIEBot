@@ -17,6 +17,9 @@ import org.jsoup.nodes.Document;
 import com.profesorfalken.jpowershell.PowerShell;
 import com.profesorfalken.jpowershell.PowerShellResponse;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -48,14 +51,27 @@ public class GetChromeDriver {
         else {
             chromeVersion=getVersionPosix(mb);
         }
-        
-        
+        Boolean autoDownload = false;
+        try{
+            autoDownload = Boolean.parseBoolean(PrefFile.getSettings("AutoDownload"));
+        }
+        catch(Exception e){
+        }
+        String driverVersion = PrefFile.getSettings("ChromeVersion");
+        if (driverVersion == null || driverVersion.equals("auto")){
+            String url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" + chromeVersion;
+            try{
+                Document verPage = Jsoup.connect(url).get();
+                Elements elems = verPage.getElementsByTag("body");
+                Element elem = elems.get(0);              
+                driverVersion = elem.ownText();
 
+            }
+            catch(Exception e){
+                mb.addLog("Wasn't able to securely ascertain the required ChromeDriver version. Please visit " + url + " manually and add the text from that page to NIEBot.ini as 'ChromeVersion = <version>'");
+            }
+        }
         
-        Document verPage = Jsoup.connect("https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" + chromeVersion).get();
-        Elements elems = verPage.getElementsByTag("body");
-        Element elem = elems.get(0);
-        String driverVersion = elem.ownText();
         String linkTxt="chromedriver_";
         if (isWindows()){
             linkTxt += "win32.zip";
@@ -80,8 +96,33 @@ public class GetChromeDriver {
         String filestr;
         java.net.URL urlobj = new java.net.URL(linkURL);
         filestr = "./ChromeDriver.zip";
-
-        System.out.println("Obtaining latest compatible ChromeDriver...");
+        if (autoDownload.equals(false)){
+            DownloadComponent dc = new DownloadComponent();
+            
+            String title = "Download Required";
+            String msg1 = "In order to use this software, we require you to download an additional component known as ChromeDriver. \nFor security reasons, we can not attempt to download it automatically.\n\n please visit the following link:";
+            String msg2 = "Then click 'Import Zip' and in the file selection box, provide the downloaded '" + linkTxt + "'";
+            
+            dc.setTitle(title);
+            dc.updateDialog(msg1, msg2, linkURL);
+            dc.setVisible(true);
+            while (dc.isVisible()){
+                TimeUnit.SECONDS.sleep(1);
+            }
+            File zip = dc.chosen;
+            if (zip == null){
+                System.exit(0);
+            }
+            InputStream zipstream = new FileInputStream(zip);
+            
+            extractZIP(zipstream, "." + System.getProperty("file.separator") + "ChromeDriver");
+            if (!isWindows()) {
+                Process process = Runtime.getRuntime().exec("chmod +x ./ChromeDriver/chromedriver");
+            }
+            mb.addLog("ChromeDriver zip extracted!");
+        }
+        else{
+        mb.addLog("Obtaining latest compatible ChromeDriver...");
         if (!isWindows()){
             extractZIP(urlobj.openStream(), "." + System.getProperty("file.separator") + "ChromeDriver");
             Process process = Runtime.getRuntime().exec("chmod +x ./ChromeDriver/chromedriver");
@@ -90,11 +131,14 @@ public class GetChromeDriver {
         else{
             extractZIP(urlobj.openStream(), "." + System.getProperty("file.separator") + "ChromeDriver");
         }
-        Charset isoCharset = Charset.forName ("ISO-8859-1");
+        
+        }
         String execName = "chromedriver";
             if (isWindows()){
                 execName = execName + ".exe";
             }
+        mb.addLog("Patching ChromeDriver");
+        Charset isoCharset = Charset.forName ("ISO-8859-1");
         String currentPath = new java.io.File(".").getCanonicalPath();
         File executable = new File(currentPath + System.getProperty("file.separator") + "ChromeDriver" + System.getProperty("file.separator") + execName);
         byte[] fileContent = Files.readAllBytes (executable.toPath ());
@@ -106,6 +150,7 @@ public class GetChromeDriver {
         Path out = Files.write(executable.toPath(), fileContent);
         //FileUtils.copyURLToFile(urlobj, fileobj );
         System.out.println(linkURL);
+        mb.addLog("ChromeDriver Patched!");
     }
     
     private static String getVersionPosix(MessageBox mb){
