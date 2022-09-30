@@ -1,6 +1,9 @@
 package com.eugc;
 
+import static com.eugc.GetChromeDriver.extractZIP;
+import static com.eugc.GetChromeDriver.isWindows;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -24,7 +27,7 @@ public class GetGeckoDriver {
         }
         if (FileUtils.sizeOfDirectory(folder) < 1){
             mb.addLog("GeckoDriver does not appear to be present in the directory you're running this program from. Downloading a fresh copy to 'GeckoDriver'");
-            getGeckoDriver();
+            getGeckoDriver(mb);
             mb.addLog("GeckoDriver download complete.");
         }
         else{
@@ -32,9 +35,17 @@ public class GetGeckoDriver {
         }
 
     }
-    public static void getGeckoDriver() throws Exception {
+    public static void getGeckoDriver(MessageBox mb) throws Exception {
         Document dlPage = Jsoup.connect("https://github.com/mozilla/geckodriver/releases/latest").get();
-        String linkTxt="geckodriver-v\\d{1,2}\\.\\d{1,2}\\.\\d{1,2}-";
+        String[] urlsplit = dlPage.location().split("/");
+        String vNumber = urlsplit[urlsplit.length-1];
+        String linkTxt="geckodriver-" + vNumber + "-";
+        Boolean autoDownload = false;
+        try{
+            autoDownload = Boolean.parseBoolean(PrefFile.getSettings("AutoDownload"));
+        }
+        catch(Exception e){
+        }
         if (isWindows()){
             if (is64bit()){
                 linkTxt += "win64.zip";
@@ -59,15 +70,41 @@ public class GetGeckoDriver {
                 linkTxt += "linux32.tar.gz";
             }
         }
-        Elements elems = dlPage.select("[href*=/mozilla/geckodriver/releases/download/]");
-        String linkURL = "";
-        for (Element elem : elems){
-            String txt = elem.text();
-            if (elem.text().matches(linkTxt)){
-                linkURL="https://www.github.com" + elem.attr("href");
-            }
-        }
+        String linkURL = "https://github.com/mozilla/geckodriver/releases/download/" + vNumber + "/" + linkTxt;
+        
         String filestr;
+        if (autoDownload == false){
+            DownloadComponent dc = new DownloadComponent();
+            
+            String title = "Download Required";
+            String msg1 = "In order to use this software, we require you to download an additional component known as GeckoDriver. \nFor security reasons, we can not attempt to download it automatically.\n\n please visit the following link:";
+            String msg2 = "Then click 'Import Download' and in the file selection box, provide the downloaded '" + linkTxt + "'";
+            if (!isWindows()){
+                dc.ImportZipBtn.setText("Import Tar.Gz");
+            }
+            dc.setTitle(title);
+            dc.updateDialog(msg1, msg2, linkURL);
+            dc.setVisible(true);
+            while (dc.isVisible()){
+                TimeUnit.SECONDS.sleep(1);
+            }
+            File zip = dc.chosen;
+            if (zip == null){
+                System.exit(0);
+            }
+            InputStream zipstream = new FileInputStream(zip);
+            
+            
+            if (!isWindows()) {
+                extractTGZ(zipstream, "." + System.getProperty("file.separator") + "GeckoDriver");
+                Process process = Runtime.getRuntime().exec("chmod +x ./GeckoDriver/geckodriver");
+            }
+            else{
+                extractZIP(zipstream, "." + System.getProperty("file.separator") + "GeckoDriver");
+            }
+            mb.addLog("ChromeDriver zip extracted!");
+        }
+        else{
         java.net.URL urlobj = new java.net.URL(linkURL);
         if (isWindows()) {
             filestr = "./GeckoDriver.zip";
@@ -83,6 +120,7 @@ public class GetGeckoDriver {
         }
         else{
             extractZIP(urlobj.openStream(), "." + System.getProperty("file.separator") + "GeckoDriver");
+        }
         }
         //FileUtils.copyURLToFile(urlobj, fileobj );
         System.out.println(linkURL);

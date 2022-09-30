@@ -148,8 +148,11 @@ public class CUE {
             } catch (Exception e) {
                 e.printStackTrace();
                 try {
+                    ec.checkForErrors(dh, mb, ah);
                     ah.alert("error");
                 } catch (IOException ex) {
+                    Logger.getLogger(CUE.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception ex) {
                     Logger.getLogger(CUE.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (!breakloop){
@@ -201,8 +204,8 @@ public class CUE {
 
     public void firstpage(DriverHelper dh) throws Exception {
         dh.saveCookies();
-        cookieprompt(dh);
         ec.checkForErrors(dh, mb, ah);
+        cookieprompt(dh);
         eh.selectByVisibleText(dh.driver.findElement(By.name("form")), "Barcelona", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
         eh.click(s, dh);
@@ -215,7 +218,7 @@ public class CUE {
     public void secondpage(DriverHelper dh) throws Exception {
         dh.saveCookies();
         dh.scroll(0,0,202,206);
-        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[0]")), "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.", dh);
+        eh.selectByVisibleText(dh.driver.findElement(By.id("tramiteGrupo[1]")), "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.", dh);
         WebElement s = dh.driver.findElement(By.id("btnAceptar"));
         eh.click(s, dh);
         newReq(mb);
@@ -294,12 +297,14 @@ public class CUE {
                 else if (body.contains("Seleccione la oficina donde solicitar la cita")){
                     return true;
                 }
+                
                 wait.until(ExpectedConditions.elementToBeClickable(By.id("btnSalir")));
                 
                 
                 
 
             }
+            ec.checkForErrors(dh, mb, ah);
             return true;
         }
         else {
