@@ -5,7 +5,7 @@ A tool to help Barcelonian people get various immigration-related appointments v
 
 This is because, from my experience and that of others, the appointment booking process has greatly improved.
 
-This bot no longer works. I do have a private that does, however I am deciding not to release it, as doing so at this point in time will do more harm than good. I am well aware that some people have used my code for profit. In the past, this was a moot subject as many appointment sellers already had their own bots. Now that the site has anti-bot protections, releasing a bot that bypasses the spanish government's bot protection is only likely to make things as bad as when I first released this tool.
+This bot no longer works. I do have a private build that does, however I am deciding not to release it, as doing so at this point in time will do more harm than good. I am well aware that some people have used my code for profit. In the past, this was a moot subject as many appointment sellers already had their own bots. Now that the site has anti-bot protections, releasing a bot that bypasses the spanish government's bot protection is only likely to make things as bad as when I first released this tool.
 
 ## Requirements
 1. A Windows or Linux PC.
